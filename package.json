@@ -4,7 +4,8 @@
   "description": "opendex-desktop",
   "main": "main.js",
   "devDependencies": {
-    "electron": "^9.0.4"
+    "electron": "^9.0.4",
+    "electron-builder": "^22.7.0"
   },
   "scripts": {
     "start-locale": "export NODE_ENV='locale' && electron .",
@@ -42,5 +43,8 @@
       "target": "zip",
       "icon": "img/AppIcon.icns"
     }
+  },
+  "dependencies": {
+    "open": "^7.0.4"
   }
 }

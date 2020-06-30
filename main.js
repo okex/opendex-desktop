@@ -3,6 +3,8 @@ const EventEmitter = require('events');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const open = require('open');
+
 // const fs = require('fs');
 
 const envConfig = require('./envConfig');
@@ -63,7 +65,15 @@ function createWindow() {
   win.webContents.on('will-navigate', (event, a) => {
     console.log('will-navigate', a);
     // event.preventDefault();
-  })
+  });
+
+  win.webContents.on('new-window', function(event, link){
+    event.preventDefault();
+    const { protocol } = url.parse(link);
+    if (protocol === 'http:' || protocol === 'https:') {
+      open(link);
+    }
+  });
 }
 
 
