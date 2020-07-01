@@ -41,7 +41,7 @@ npm run build-win
 If you are compiling a windows application on the MipS platform, you need to install the adapted version "wine" and "mono" first
 
 ### Quick Build for opendex-ui
-Put this project and [opendex-ui](https://github.com/okex/opendex-ui) 、[okline](https://github.com/okex/okline)project in the same directory.  
+Put this project and [opendex-ui](https://github.com/okex/opendex-ui) 、[okline](https://github.com/okex/okline) project in the same directory.  
 Run npm run desktop in the opendex-ui project.  
 Run npm run release in the okline project.  
 Execute npm run build-test in this project.  
