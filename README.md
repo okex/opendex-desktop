@@ -38,7 +38,7 @@ npm run build-mac
 ```
 npm run build-win
 ```
-If you are compiling a windows application on the MipS platform, you need to install the adapted version "wine" and "mono" first
+If you are compiling a windows application on the MacOS platform, you need to install the adapted version "wine" and "mono" first
 
 ### Quick Build for opendex-ui
 Put this project and [opendex-ui](https://github.com/okex/opendex-ui) 、[okline](https://github.com/okex/okline) project in the same directory.  
