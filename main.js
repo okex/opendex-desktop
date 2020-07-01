@@ -1,16 +1,9 @@
 const { app, BrowserWindow, protocol } = require('electron');
-const EventEmitter = require('events');
-const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const open = require('open');
 
-// const fs = require('fs');
-
 const envConfig = require('./envConfig');
-
-const emitter = new EventEmitter();
-emitter.setMaxListeners(50);
 
 const nodeEnv = process.env.NODE_ENV ? process.env.NODE_ENV.replace(/(^\s*)|(\s*$)/g, '') : 'builder';
 const sourceEnv = nodeEnv === 'builder' ? require('./package.json').configEnv : nodeEnv;
@@ -24,11 +17,6 @@ const indexPageURL = `${sourceHost}/${entryTplName}`;
 if (!nodeEnv.includes('prod')) {
   process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 }
-
-
-const globalData = {
-  windowsMap: {},
-};
 
 let win;
 
@@ -118,11 +106,6 @@ app.on('ready', () => {
       filePath = filePath.replace(hash, '');
     }
     
-    // not file request
-    // if (!fs.existsSync(filePath)) {
-    //   file = 
-    // }
-    console.log('filePath', filePath)
     callback({ path: filePath })
   });
 

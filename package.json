@@ -10,11 +10,9 @@
   "scripts": {
     "start-locale": "export NODE_ENV='locale' && electron .",
     "start-dev": "export NODE_ENV='develope' && electron .",
-    "build-test": "rm -rf ./bundle && cp -r ../opendex-ui/bundle ./ && cp -r ../okline/okline ./bundle && rm -rf release && npm run build-mac-dev",
-    "build-mac-dev": "electron-builder -c.productName='OpenDexMacDev' -c.extraMetadata.configEnv=develope",
-    "build-mac-prod": "electron-builder -c.productName='OpenDexMac' -c.extraMetadata.configEnv=prod",
-    "build-win-dev": "electron-builder --win --x64 -c.productName='OpenDexWinDev' -c.extraMetadata.configEnv=develope",
-    "build-win-prod": "electron-builder --win --x64 -c.productName='OpenDexWin' -c.extraMetadata.configEnv=prod"
+    "build-test": "rm -rf ./bundle && cp -r ../opendex-ui/bundle ./ && cp -r ../okline/okline ./bundle && rm -rf release && npm run build-mac",
+    "build-mac": "electron-builder -c.productName='OpenDexMacDev' -c.extraMetadata.configEnv=develope",
+    "build-win": "electron-builder --win --x64 -c.productName='OpenDexWin' -c.extraMetadata.configEnv=prod"
   },
   "author": "yuliang.zhang",
   "license": "ISC",
