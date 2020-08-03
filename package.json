@@ -4,7 +4,7 @@
   "description": "opendex-desktop",
   "main": "main.js",
   "devDependencies": {
-    "electron": "^9.0.4",
+    "electron": "^9.1.2",
     "electron-builder": "^22.7.0"
   },
   "scripts": {
@@ -12,14 +12,15 @@
     "start-dev": "export NODE_ENV='develope' && electron .",
     "build-test": "rm -rf ./bundle && cp -r ../opendex-ui/bundle ./ && cp -r ../okline/okline ./bundle && rm -rf release && npm run build-mac",
     "build-mac": "electron-builder -c.productName='OpenDexMacDev' -c.extraMetadata.configEnv=develope",
-    "build-win": "electron-builder --win --x64 -c.productName='OpenDexWin' -c.extraMetadata.configEnv=prod"
+    "build-win": "electron-builder --win -c.productName='OpenDexWinDev' -c.extraMetadata.configEnv=develope"
   },
-  "author": "yuliang.zhang",
+  "author": "yuliang.zhang <zhangyuliangwork@gmail.com>",
   "license": "ISC",
   "build": {
     "directories": {
       "output": "release"
     },
+    "productName": "OpenDexDev",
     "files": [
       "!node_modules/*",
       "!img/*",
@@ -28,6 +29,9 @@
       "!package-*",
       "!README.md"
     ],
+    "extraMetadata": {
+      "configEnv": "develope"
+    },
     "mac": {
       "category": "public.app-category.finance",
       "target": "dmg",
@@ -37,12 +41,30 @@
       "background": "img/mac_bg.png",
       "icon": "img/AppIcon.icns"
     },
+    "nsis": {
+      "createDesktopShortcut": "always"
+    },
     "win": {
-      "target": "zip",
+      "target": [
+        "zip",
+        "nsis"
+      ],
       "icon": "img/AppIcon.icns"
+    },
+    "linux": {
+      "target": [
+        "deb",
+        "rpm",
+        "snap",
+        "AppImage"
+      ],
+      "category": "WebBrowser"
     }
   },
   "dependencies": {
-    "open": "^7.0.4"
+    "electron-dl": "^3.0.1",
+    "electron-store": "^6.0.0",
+    "open": "^7.0.4",
+    "shelljs": "^0.8.4"
   }
 }

@@ -3,8 +3,9 @@ const path = require('path');
 const url = require('url');
 const open = require('open');
 
-const envConfig = require('./envConfig');
+const download = require('./src/download');
 
+const envConfig = require('./envConfig');
 const nodeEnv = process.env.NODE_ENV ? process.env.NODE_ENV.replace(/(^\s*)|(\s*$)/g, '') : 'builder';
 const sourceEnv = nodeEnv === 'builder' ? require('./package.json').configEnv : nodeEnv;
 
@@ -19,7 +20,6 @@ if (!nodeEnv.includes('prod')) {
 }
 
 let win;
-
 function createWindow() {
   win = new BrowserWindow({
     width: 1280,
@@ -40,11 +40,8 @@ function createWindow() {
   win.loadURL(indexPageURL);
   win.once('ready-to-show', () => {
     win.show();
+    download();
   });
-
-  if (nodeEnv === 'develope') {
-    win.webContents.openDevTools();
-  }
 
   win.on('closed', () => {
     win = null;
@@ -111,4 +108,3 @@ app.on('ready', () => {
 
   createWindow();
 });
-
