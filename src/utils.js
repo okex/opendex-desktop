@@ -1,7 +1,7 @@
 const shell = require('shelljs');
 const Store = require('electron-store');
 const { EventEmitter } = require('events');
-const { net } = require('electron');
+const got = require('got');
 
 const nodePath = (shell.which('node').toString());
 shell.config.execPath = nodePath;
@@ -19,27 +19,18 @@ const emitter = new EventEmitter();
 emitter.setMaxListeners(50);
 
 // request
-const request = (option) => {
-  return new Promise((resolve, reject) => {
-    const request = net.request(option);
-    let res = '';
-
-    request.on('response', (response) => {
-      response.on('data', (chunk) => {
-        res += chunk
-      });
-
-      response.on('end', () => {
-        resolve(JSON.parse(res))
-      });
-      response.on('error', (err) => {
-        reject(err);
-      })
-    });
-
-    request.end();
-  });
-};
+const request = got.extend({
+  responseType: 'json',
+  hooks: {
+    afterResponse: [(response) => {
+      return response;
+    }],
+  },
+  retry: {
+    limit: 5,
+    maxRetryAfter: 3000
+  }
+});
 
 module.exports = {
   store,

@@ -19,6 +19,8 @@ if (!nodeEnv.includes('prod')) {
   process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 }
 
+app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
+
 let win;
 function createWindow() {
   win = new BrowserWindow({
@@ -34,8 +36,6 @@ function createWindow() {
       webSecurity: false
     }
   });
-  
-  console.log('indexPageURL', indexPageURL)
   
   win.loadURL(indexPageURL);
   win.once('ready-to-show', () => {
@@ -77,7 +77,7 @@ app.on('ready', () => {
   protocol.interceptFileProtocol('file', (request, callback) => {
     const uri = request.url.substr(8); //file://{url}
     let { hash, pathname } = url.parse(uri);
-    
+
     const isOklinePath = uri.includes('okline/');
     const bundlePath = path.resolve(__dirname, './bundle');
     const isDexCommon = uri.includes('dex-test/spot');

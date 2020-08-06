@@ -64,6 +64,7 @@
   "dependencies": {
     "electron-dl": "^3.0.1",
     "electron-store": "^6.0.0",
+    "got": "^11.5.1",
     "open": "^7.0.4",
     "shelljs": "^0.8.4"
   }

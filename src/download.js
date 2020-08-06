@@ -6,7 +6,8 @@ const { store, request, emitter, shell } = require('./utils');
 const RELEASE_URL = 'https://api.github.com/repos/okex/okchain/releases/latest';
 
 module.exports = () => {
-  request(RELEASE_URL).then(data => {
+  request(RELEASE_URL).then(response => {
+    const { body: data } = response;
     const localReleaseTag = store.get('releaseTag');
     const assetType = `okchaind.${process.platform}`;
     const okchaindObj = data.assets.filter(d => d.name.includes(assetType))[0];
@@ -26,7 +27,7 @@ module.exports = () => {
 
       if (needDownload) {
         let win;
-  
+        store.set('isOkchaindSetup', false);
         (async () => {
           await app.whenReady();
           win = BrowserWindow.getAllWindows()[0];
@@ -48,9 +49,15 @@ module.exports = () => {
 
                   try {
                     await shell.exec(cmd);
+                    store.set('isOkchaindSetup', true);
+                    if (store.get('okchaindDirectory') === undefined) {
+                      store.set('okchaindDirectory', directory);
+                      store.set('okchaindAbsAssetPath', absAssetPath);
+                    }
+
                   } catch(err) {
                     emitter.emit('downloadOkchainErr');
-                    console.log(err);
+                    console.log('err', err);
                   }
                 })()
               }
