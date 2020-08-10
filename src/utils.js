@@ -2,6 +2,7 @@ const shell = require('shelljs');
 const Store = require('electron-store');
 const { EventEmitter } = require('events');
 const got = require('got');
+const { download } = require('electron-dl');
 
 const nodePath = (shell.which('node').toString());
 shell.config.execPath = nodePath;
@@ -36,5 +37,26 @@ module.exports = {
   store,
   emitter,
   request,
-  shell
+  shell,
+  download: (name, resolve) => {
+    let finishEmit = false;
+    return (...args) => {
+      emitter.emit(`downloadStart@${name}`);
+      args[2] = args[2] || {};
+
+      if (typeof args[2].onProgress !== 'function') {
+        args[2].onProgress = async (res) => {
+          emitter.emit(`downloadProgress@${name}`, res);
+
+          if (res.percent === 1 && !finishEmit) {
+            finishEmit = true;
+            emitter.emit(`downloadFinish@${name}`);
+            typeof resolve === 'function' && resolve(true);
+          }
+        }
+      }
+      
+      download.apply(download, args);
+    }
+  }
 }

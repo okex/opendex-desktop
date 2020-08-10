@@ -1,8 +1,6 @@
 const fs = require('fs');
 const { app, BrowserWindow } = require('electron');
-const { download } = require('electron-dl');
-const { store, request, emitter, shell } = require('./utils');
-
+const { store, request, emitter, shell, download } = require('./utils');
 const RELEASE_URL = 'https://api.github.com/repos/okex/okchain/releases/latest';
 
 const shellPrm = new Proxy(shell, {
@@ -50,13 +48,14 @@ module.exports = () => {
     let needDownload = false;
     let cliNeedDownload = false;
     let win;
-    
+    let couldTar = false;
+
     const genDownloadProgressHandler = (name, resolve) => {
       return async (res) => {
         console.log(name, res)
-          emitter.emit(`${name}DownloadProgress`, res);
+          emitter.emit(`downloadProgress@${name}`, res);
 
-          if (res.percent === 1) {
+          if (res.percent === 1 && couldTar) {
               
               const cmd = `tar -zxvf ${name === 'okchaind' ? okchaindObj.name : cliObj.name}`;
 
@@ -79,24 +78,35 @@ module.exports = () => {
     const doDownload = (name) => {
       const url = name === 'okchaind' ? downloadUrl : cliDownloadUrl;
       console.log(`${name} downloading...`);
+      couldTar = true;
       return new Promise((resolve, reject) => {
         try {
-          download(win, url, {
+          const trigger = download(name, resolve);
+          trigger(win, url, {
             directory,
             onProgress: genDownloadProgressHandler(name, resolve)
           });
         } catch(err) {
           console.log('doDownload error：', err);
           reject(err);
-          emitter.emit(`download${name}dErr`, err);
+          emitter.emit(`downloadError@${name}`, err);
         }
       })
     }
 
     (async () => {
+
       if (!fs.existsSync(directory)) {
         await shellPrm.mkdir(directory);
         needDownload = true;
+        cliNeedDownload = true;
+      }
+
+      if (!fs.existsSync(cliAbsAssetPath)) {
+        cliNeedDownload = true;
+      }
+
+      if (!fs.existsSync(absAssetPath)) {
         cliNeedDownload = true;
       }
 
@@ -107,22 +117,28 @@ module.exports = () => {
         await app.whenReady();
         win = BrowserWindow.getAllWindows()[0];
         
-        if (cliNeedDownload) {
-          console.log(cliAbsAssetPath)
-          if (fs.existsSync(cliAbsAssetPath)) {
-            await shellPrm.rm(absAssetPath)
-          }
-          await doDownload('okchaincli');
+        if (needDownload) {
+          emitter.emit('newVersionFound@okchaind', data.tag_name);
         }
 
-        if (needDownload) {
+        if (cliNeedDownload) {
+          emitter.emit('newVersionFound@okchaincli', data.tag_name);
+        }
+
+        emitter.on('download@okchaind', async () => {
           if (fs.existsSync(absAssetPath)) {
             await shellPrm.rm(absAssetPath)
           }
           await doDownload('okchaind');
-        }
+        });
 
-        
+        emitter.on('download@okchaincli', async () => {
+          if (fs.existsSync(cliAbsAssetPath)) {
+            await shellPrm.rm(absAssetPath)
+          }
+          await doDownload('okchaincli');
+        });
+
       }
     })();
   });
