@@ -28,11 +28,17 @@ const shellPrm = new Proxy(shell, {
 
 module.exports = () => {
   request(RELEASE_URL).then(response => {
+    shellPrm.cd(app.getPath('home'));
     const { body: data } = response;
     const releaseTag = store.get('okchaindReleaseTag');
     const cliReleaseTag = store.get('okchaincliReleaseTag');
     const directory = process.platform === 'win32' ? '%ProgramFiles%/OKChain' : `${app.getPath('home')}/OKChain`;
-    
+
+    if (!Array.isArray(data.assets) || !data.assets.length) {
+      emitter.emit('getReleaseInfoError@download', data);
+      return
+    }
+
     // okchaind
     const assetType = `okchaind.${process.platform}`;
     const okchaindObj = data.assets.filter(d => d.name.includes(assetType))[0];

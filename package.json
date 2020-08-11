@@ -22,9 +22,7 @@
     },
     "productName": "OpenDexDev",
     "files": [
-      "!node_modules/*",
       "!img/*",
-      "!src/*",
       "!.*",
       "!package-*",
       "!README.md"

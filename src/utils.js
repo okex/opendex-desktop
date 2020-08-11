@@ -4,8 +4,13 @@ const { EventEmitter } = require('events');
 const got = require('got');
 const { download } = require('electron-dl');
 
-const nodePath = (shell.which('node').toString());
-shell.config.execPath = nodePath;
+
+const nodePath = shell.which('node');
+if (nodePath) {
+  shell.config.execPath = nodePath.toString();
+  console.log(shell.config.execPath)
+}
+
 
 // store
 const schema = {
@@ -13,7 +18,7 @@ const schema = {
     type: 'string'
   }
 };
-const store = new Store({schema});
+const store = new Store({ schema });
 
 // emitter
 const emitter = new EventEmitter();

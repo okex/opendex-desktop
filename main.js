@@ -73,6 +73,7 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
 app.on('ready', () => {
   protocol.interceptFileProtocol('file', (request, callback) => {
     const uri = request.url.substr(8); //file://{url}
