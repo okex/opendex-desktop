@@ -28,7 +28,6 @@ const shellPrm = new Proxy(shell, {
 
 module.exports = () => {
   request(RELEASE_URL).then(response => {
-    shellPrm.cd(app.getPath('home'));
     const { body: data } = response;
     const releaseTag = store.get('okchaindReleaseTag');
     const cliReleaseTag = store.get('okchaincliReleaseTag');
