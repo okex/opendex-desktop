@@ -41,6 +41,9 @@ function createWindow() {
   win.once('ready-to-show', () => {
     win.show();
     download();
+    if (sourceEnv === 'locale') {
+      win.webContents.openDevTools();
+    }
   });
 
   win.on('closed', () => {
@@ -63,9 +66,9 @@ function createWindow() {
 
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  // if (process.platform !== 'darwin') {
+  app.quit();
+  // }
 });
 
 app.on('activate', () => {
