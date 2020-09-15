@@ -38,11 +38,22 @@ const request = got.extend({
   }
 });
 
+let client;
+const localNodeServerClient = {
+  get() {
+    return client;
+  },
+  set(value) {
+    client = value;
+  }
+}
+
 module.exports = {
   store,
   emitter,
   request,
   shell,
+  localNodeServerClient,
   download: (name, resolve) => {
     let finishEmit = false;
     return (...args) => {
