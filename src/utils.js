@@ -3,7 +3,7 @@ const Store = require('electron-store');
 const { EventEmitter } = require('events');
 const got = require('got');
 const { download } = require('electron-dl');
-
+const localNodeDataStatus = require('./localNodeDataStatus');
 
 const nodePath = shell.which('node');
 if (nodePath) {
@@ -38,11 +38,23 @@ const request = got.extend({
   }
 });
 
+let client;
+const localNodeServerClient = {
+  get() {
+    return client;
+  },
+  set(value) {
+    client = value;
+  }
+}
+
 module.exports = {
   store,
   emitter,
   request,
   shell,
+  localNodeServerClient,
+  localNodeDataStatus,
   download: (name, resolve) => {
     let finishEmit = false;
     return (...args) => {

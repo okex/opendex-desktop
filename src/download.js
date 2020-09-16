@@ -2,14 +2,9 @@ const fs = require('fs');
 const { app, BrowserWindow } = require('electron');
 const { store, request, emitter, shell, download } = require('./utils');
 const RELEASE_URL = 'https://api.github.com/repos/okex/okexchain/releases/latest';
-const latest = { body: require('../mock/latest.json') };
 
 module.exports = () => {
-  store.set('okchaindReleaseTag', 'v0.11.0')
-  store.set('okchaincliReleaseTag', 'v0.11.0')
-
-  // request(RELEASE_URL).then(response => {
-  Promise.resolve(latest).then(response => {
+  request(RELEASE_URL).then(response => {
     const { body: data } = response;
     const releaseTag = store.get('okchaindReleaseTag');
     const cliReleaseTag = store.get('okchaincliReleaseTag');
@@ -81,7 +76,6 @@ module.exports = () => {
 
       okchaindNeedUpdate = okchaindNeedUpdate || (releaseTag !== data.tag_name);
       cliNeedUpdate = cliNeedUpdate || (cliReleaseTag !== data.tag_name);
-      console.log(okchaindNeedUpdate, cliNeedUpdate)
       if (okchaindNeedUpdate || cliNeedUpdate || !isOkchaindDownload || !isOkchaindDownload) {
         await app.whenReady();
         win = BrowserWindow.getAllWindows()[0];
