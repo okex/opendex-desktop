@@ -2,8 +2,35 @@ const fs = require('fs');
 const { app, BrowserWindow } = require('electron');
 const { store, request, emitter, shell, download } = require('./utils');
 const RELEASE_URL = 'https://api.github.com/repos/okex/okexchain/releases/latest';
+// const latest = { body: require('../mock/latest.json') };
 
+let isInitWindowReadyReceiveEvent = false;
 module.exports = () => {
+  let isWindowReadyReceiveEvent = false;
+  const asyncEventHandlers = [];
+
+  if (!isInitWindowReadyReceiveEvent) {
+    emitter.on('windowReadyReceiveEvent', () => {
+      while(asyncEventHandlers.length) {
+        const handler = asyncEventHandlers.shift();
+        handler();
+      }
+      console.log('windowReadyReceiveEvent')
+      isWindowReadyReceiveEvent = true;
+      
+    });
+    isInitWindowReadyReceiveEvent = true;
+  }
+  
+  const doWhenWindowReadyRecevieEvent = (cb) => {
+    if (isWindowReadyReceiveEvent) {
+      cb();
+    } else {
+     asyncEventHandlers.push(cb);
+    }
+  };
+
+  // Promise.resolve(latest).then(response => {
   request(RELEASE_URL).then(response => {
     const { body: data } = response;
     const releaseTag = store.get('okchaindReleaseTag');
@@ -33,8 +60,6 @@ module.exports = () => {
     let isCliDownload = true;
     let isEmitterInit = false;
     let win;
-    let isWindowReadyReceiveEvent = false;
-    const asyncEventHandlers = [];
 
     const couldTar = {};
 
@@ -76,19 +101,13 @@ module.exports = () => {
 
       okchaindNeedUpdate = okchaindNeedUpdate || (releaseTag !== data.tag_name);
       cliNeedUpdate = cliNeedUpdate || (cliReleaseTag !== data.tag_name);
+      console.log(okchaindNeedUpdate , cliNeedUpdate , !isOkchaindDownload , !isOkchaindDownload);
+
       if (okchaindNeedUpdate || cliNeedUpdate || !isOkchaindDownload || !isOkchaindDownload) {
         await app.whenReady();
         win = BrowserWindow.getAllWindows()[0];
         store.set('okchaindObj', okchaindObj);
         store.set('cliObj', cliObj);
-
-        const doWhenWindowReadyRecevieEvent = (cb) => {
-          if (isWindowReadyReceiveEvent) {
-            cb();
-          } else {
-           asyncEventHandlers.push(cb);
-          }
-        };
 
         if (okchaindNeedUpdate || cliNeedUpdate) {
           doWhenWindowReadyRecevieEvent(() => {
@@ -164,16 +183,6 @@ module.exports = () => {
           emitter.on('redownload', () => {
             console.log('redownload...')
             start(true);
-          });
-
-          emitter.on('windowReadyReceiveEvent', () => {
-            console.log('on windowReadyReceiveEvent')
-            while(asyncEventHandlers.length) {
-              const handler = asyncEventHandlers.shift();
-              handler();
-            }
-            isWindowReadyReceiveEvent = true;
-            
           });
 
           isEmitterInit = true;
