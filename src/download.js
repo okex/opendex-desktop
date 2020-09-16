@@ -2,38 +2,21 @@ const fs = require('fs');
 const { app, BrowserWindow } = require('electron');
 const { store, request, emitter, shell, download } = require('./utils');
 const RELEASE_URL = 'https://api.github.com/repos/okex/okexchain/releases/latest';
-
-const shellPrm = new Proxy(shell, {
-  get : function(target, prop ) {
-    if (prop === 'exec') {
-      const func = target[prop];
-      return function (cmd, cb) {
-        return new Promise((resolve, reject) => {
-          if (typeof cb === 'function') {
-            func(cmd, cb)
-          } else {
-            func(cmd, (code, stdout, stderr) => {
-              if (code !== 0) {
-                return reject(stderr);
-              }
-              resolve(stdout);
-            })
-          }
-        });
-      }
-    }
-    return target[prop];
-  },
-});
+const latest = { body: require('../mock/latest.json') };
 
 module.exports = () => {
-  request(RELEASE_URL).then(response => {
+  store.set('okchaindReleaseTag', 'v0.11.0')
+  store.set('okchaincliReleaseTag', 'v0.11.0')
+
+  // request(RELEASE_URL).then(response => {
+  Promise.resolve(latest).then(response => {
     const { body: data } = response;
     const releaseTag = store.get('okchaindReleaseTag');
     const cliReleaseTag = store.get('okchaincliReleaseTag');
-    const directory = process.platform === 'win32' ? '%ProgramFiles%/OKChain' : `${app.getPath('home')}/OKChain`;
+    const directory = process.platform === 'win32' ? `%ProgramFiles%/OKChain` : `${app.getPath('home')}/OKChain`;
+    const lastVersionDirectory = `${directory}/${data.tag_name}`;
 
-
+    console.log(data.tag_name, releaseTag, cliReleaseTag);
     if (!Array.isArray(data.assets) || !data.assets.length) {
       emitter.emit('getReleaseInfoError@download', data);
       return
@@ -43,125 +26,167 @@ module.exports = () => {
     const assetType = `okchaind.${process.platform}`;
     const okchaindObj = data.assets.filter(d => d.name.includes(assetType))[0];
     const downloadUrl = okchaindObj.browser_download_url;
-    const absAssetPath = `${directory}/${okchaindObj.name}`;
     
     // okchaincli
     const cliType = `okchaincli.${process.platform}`;
     const cliObj = data.assets.filter(d => d.name.includes(cliType))[0];
     const cliDownloadUrl = cliObj.browser_download_url;
-    const cliAbsAssetPath = `${directory}/${cliObj.name}`;
 
     let okchaindNeedUpdate = false;
     let cliNeedUpdate = false;
     let isOkchaindDownload = true;
     let isCliDownload = true;
+    let isEmitterInit = false;
     let win;
+    let isWindowReadyReceiveEvent = false;
+    const asyncEventHandlers = [];
+
     const couldTar = {};
 
+    const onDownloadFinished = async (name) => {
+      const tarName = name === 'okchaind' ? okchaindObj.name : cliObj.name;
+      const appName = tarName.split('.')[0];
+      const cmd = `tar -zxvf ${tarName}`;
 
-    (async () => {
+      shell.cd(lastVersionDirectory);
+      try {
+        shell.exec(cmd);
+        shell.cp(`./${appName}`, '../');
+        couldTar[name] = false;
+        emitter.emit(`downloadFinish@${name}`);
+      } catch(err) {
+        console.log(err);
+      }
 
-      if (!fs.existsSync(directory)) {
-        await shellPrm.mkdir(directory);
+      store.set(`${name}ReleaseTag`, data.tag_name);
+      store.set('okchainDirectory', directory);
+    }
+
+    const start = async (isRedownload = false) => {
+      if (isRedownload && fs.existsSync(lastVersionDirectory)) {
+        shell.rm('-f', `${lastVersionDirectory}/okchain*`)
+      }
+
+      if (!fs.existsSync(lastVersionDirectory)) {
         isOkchaindDownload = false;
         isCliDownload = false;
-        store.delete('okchaindReleaseTag')
-        store.delete('okchaincliReleaseTag')
+      } else {
+        if (!releaseTag || !fs.existsSync(`${lastVersionDirectory}/okchaind`)) {
+          isOkchaindDownload = false;
+        }
+        if (!cliReleaseTag || !fs.existsSync(`${lastVersionDirectory}/okchaincli`)) {
+          isOkchaindDownload = false;
+        }
       }
 
-      if (!fs.existsSync(cliAbsAssetPath)) {
-        isCliDownload = false;
-      }
-
-      if (!fs.existsSync(absAssetPath)) {
-        isOkchaindDownload = false;
-      }
-
-      okchaindNeedUpdate = okchaindNeedUpdate || (!releaseTag || releaseTag !== data.tag_name)
-      cliNeedUpdate = cliNeedUpdate || (!cliReleaseTag || cliReleaseTag !== data.tag_name)
-
+      okchaindNeedUpdate = okchaindNeedUpdate || (releaseTag !== data.tag_name);
+      cliNeedUpdate = cliNeedUpdate || (cliReleaseTag !== data.tag_name);
+      console.log(okchaindNeedUpdate, cliNeedUpdate)
       if (okchaindNeedUpdate || cliNeedUpdate || !isOkchaindDownload || !isOkchaindDownload) {
         await app.whenReady();
         win = BrowserWindow.getAllWindows()[0];
-        
+        store.set('okchaindObj', okchaindObj);
+        store.set('cliObj', cliObj);
+
+        const doWhenWindowReadyRecevieEvent = (cb) => {
+          if (isWindowReadyReceiveEvent) {
+            cb();
+          } else {
+           asyncEventHandlers.push(cb);
+          }
+        };
+
         if (okchaindNeedUpdate || cliNeedUpdate) {
-          emitter.emit('newVersionFound@download', {
-            okchaindNeedUpdate,
-            cliNeedUpdate,
-            tagName: data.tag_name
+          doWhenWindowReadyRecevieEvent(() => {
+            emitter.emit('newVersionFound@download', {
+              okchaindNeedUpdate,
+              cliNeedUpdate,
+              tagName: data.tag_name
+            });
           });
         } 
 
         if (!isOkchaindDownload || !isCliDownload) {
-          emitter.emit('notDownload@Download', {
-            isOkchaindDownload,
-            isCliDownload,
-            tagName: data.tag_name
+          doWhenWindowReadyRecevieEvent(() => {
+            console.log('emit notDownload@Download')
+            emitter.emit('notDownload@Download', {
+              isOkchaindDownload,
+              isCliDownload,
+              tagName: data.tag_name,
+              isRedownload
+            });
           });
         }
-
-
 
         const genDownloadProgressHandler = (name, resolve) => {
           return async (res) => {
               console.log(name, res)
               emitter.emit(`downloadProgress@${name}`, res);
               if (res.percent === 1 && couldTar[name]) {
-
-                  couldTar[name] = false;  
-                  const cmd = `tar -zxvf ${name === 'okchaind' ? okchaindObj.name : cliObj.name}`;
-    
-                  await shellPrm.cd(directory);
-                  try {
-                    await shellPrm.exec(cmd);
-                    couldTar[name] = false;
-
-                  } catch(err) {
-                    console.log(err)
-                  }
-                  
-                  store.set(`${name}ReleaseTag`, data.tag_name);
-                  store.set('okchainDirectory', directory);
-                  store.set(`${name}AbsAssetPath`, name === 'okchaind' ? absAssetPath : cliAbsAssetPath);
-                  typeof resolve === 'function' && resolve(true);
+                onDownloadFinished(name);
+                typeof resolve === 'function' && resolve(true);
               }
           }
         }
     
         const doDownload = (name) => {
           const url = name === 'okchaind' ? downloadUrl : cliDownloadUrl;
+
           console.log(`${name} downloading...`);
           couldTar[name] = true;
+
           return new Promise((resolve, reject) => {
             try {
               const trigger = download(name, resolve);
               trigger(win, url, {
-                directory,
+                directory: lastVersionDirectory, // ~/OKChain/vx.xx.xx/
                 onProgress: genDownloadProgressHandler(name, resolve)
               });
             } catch(err) {
               console.log('doDownload error：', err);
+              emitter.emit(`downloadError`, err);
               reject(err);
-              emitter.emit(`downloadError@${name}`, err);
             }
           })
         }
+        if (!isEmitterInit) {
 
-        emitter.on('downloadOkchaind@download', async () => {
-          if (fs.existsSync(absAssetPath)) {
-            await shellPrm.rm(absAssetPath)
-          }
-          // await doDownload('okchaind');
-        });
+          emitter.on('downloadOkchaind@download', () => {
+            const path = `${lastVersionDirectory}/${okchaindObj.name}`;
+            if (fs.existsSync(path)) {
+              shell.rm('-f', path)
+            }
+            doDownload('okchaind');
+          });
+  
+          emitter.on('downloadOkchaincli@download', () => {
+            const path = `${lastVersionDirectory}/${cliObj.name}`;
+            if (fs.existsSync(path)) {
+              shell.rm('-f', path)
+            }
+            doDownload('okchaincli');
+          });
 
-        emitter.on('downloadOkchaincli@download', async () => {
-          if (fs.existsSync(cliAbsAssetPath)) {
-            await shellPrm.rm(absAssetPath)
-          }
-          await doDownload('okchaincli');
-        });
+          emitter.on('redownload', () => {
+            console.log('redownload...')
+            start(true);
+          });
+
+          emitter.on('windowReadyReceiveEvent', () => {
+            console.log('on windowReadyReceiveEvent')
+            while(asyncEventHandlers.length) {
+              const handler = asyncEventHandlers.shift();
+              handler();
+            }
+            isWindowReadyReceiveEvent = true;
+            
+          });
+
+          isEmitterInit = true;
+        }
 
       }
-    })();
+    };
+    start(false);
   });
 }
