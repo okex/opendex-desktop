@@ -33,9 +33,9 @@ module.exports = () => {
   // Promise.resolve(latest).then(response => {
   request(RELEASE_URL).then(response => {
     const { body: data } = response;
-    const releaseTag = store.get('okchaindReleaseTag');
-    const cliReleaseTag = store.get('okchaincliReleaseTag');
-    const directory = process.platform === 'win32' ? `%ProgramFiles%/OKChain` : `${app.getPath('home')}/OKChain`;
+    const releaseTag = store.get('okexchaindReleaseTag');
+    const cliReleaseTag = store.get('okexchaincliReleaseTag');
+    const directory = process.platform === 'win32' ? `%ProgramFiles%/OKExChain` : `${app.getPath('home')}/OKExChain`;
     const lastVersionDirectory = `${directory}/${data.tag_name}`;
 
     console.log(data.tag_name, releaseTag, cliReleaseTag);
@@ -44,23 +44,23 @@ module.exports = () => {
       return
     }
 
-    // okchaind
-    const assetType = `okchaind.${process.platform}`;
-    const okchaindObj = data.assets.filter(d => d.name.includes(assetType))[0];
-    const downloadUrl = okchaindObj.browser_download_url;
+    // okexchaind
+    const assetType = `okexchaind.${process.platform}`;
+    const okexchaindObj = data.assets.filter(d => d.name.includes(assetType))[0];
+    const downloadUrl = okexchaindObj.browser_download_url;
     
 
-    // okchaincli
-    const cliType = `okchaincli.${process.platform}`;
+    // okexchaincli
+    const cliType = `okexchaincli.${process.platform}`;
     const cliObj = data.assets.filter(d => d.name.includes(cliType))[0];
     const cliDownloadUrl = cliObj.browser_download_url;
 
-    store.set('okchaindObj', okchaindObj);
+    store.set('okexchaindObj', okexchaindObj);
     store.set('cliObj', cliObj);
 
-    let okchaindNeedUpdate = false;
+    let okexchaindNeedUpdate = false;
     let cliNeedUpdate = false;
-    let isOkchaindDownload = true;
+    let isOkexchaindDownload = true;
     let isCliDownload = true;
     let isEmitterInit = false;
     let win;
@@ -68,7 +68,7 @@ module.exports = () => {
     const couldTar = {};
 
     const onDownloadFinished = async (name) => {
-      const tarName = name === 'okchaind' ? okchaindObj.name : cliObj.name;
+      const tarName = name === 'okexchaind' ? okexchaindObj.name : cliObj.name;
       const appName = tarName.split('.')[0];
       const cmd = `tar -zxvf ${tarName}`;
 
@@ -83,49 +83,49 @@ module.exports = () => {
       }
 
       store.set(`${name}ReleaseTag`, data.tag_name);
-      store.set('okchainDirectory', directory);
+      store.set('okexchainDirectory', directory);
     }
 
     const start = async (isRedownload = false) => {
       if (isRedownload && fs.existsSync(lastVersionDirectory)) {
-        shell.rm('-f', `${lastVersionDirectory}/okchain*`)
+        shell.rm('-f', `${lastVersionDirectory}/okexchain*`)
       }
 
       if (!fs.existsSync(lastVersionDirectory)) {
-        isOkchaindDownload = false;
+        isOkexchaindDownload = false;
         isCliDownload = false;
       } else {
-        if (!releaseTag || !fs.existsSync(`${lastVersionDirectory}/okchaind`)) {
-          isOkchaindDownload = false;
+        if (!releaseTag || !fs.existsSync(`${lastVersionDirectory}/okexchaind`)) {
+          isOkexchaindDownload = false;
         }
-        if (!cliReleaseTag || !fs.existsSync(`${lastVersionDirectory}/okchaincli`)) {
-          isOkchaindDownload = false;
+        if (!cliReleaseTag || !fs.existsSync(`${lastVersionDirectory}/okexchaincli`)) {
+          isOkexchaindDownload = false;
         }
       }
 
-      okchaindNeedUpdate = okchaindNeedUpdate || (releaseTag !== data.tag_name);
+      okexchaindNeedUpdate = okexchaindNeedUpdate || (releaseTag !== data.tag_name);
       cliNeedUpdate = cliNeedUpdate || (cliReleaseTag !== data.tag_name);
-      console.log(okchaindNeedUpdate , cliNeedUpdate , !isOkchaindDownload , !isOkchaindDownload);
+      console.log(okexchaindNeedUpdate , cliNeedUpdate , !isOkexchaindDownload , !isOkexchaindDownload);
 
-      if (okchaindNeedUpdate || cliNeedUpdate || !isOkchaindDownload || !isOkchaindDownload) {
+      if (okexchaindNeedUpdate || cliNeedUpdate || !isOkexchaindDownload || !isOkexchaindDownload) {
         await app.whenReady();
         win = BrowserWindow.getAllWindows()[0];
 
-        if (okchaindNeedUpdate || cliNeedUpdate) {
+        if (okexchaindNeedUpdate || cliNeedUpdate) {
           doWhenWindowReadyRecevieEvent(() => {
             emitter.emit('newVersionFound@download', {
-              okchaindNeedUpdate,
+              okexchaindNeedUpdate,
               cliNeedUpdate,
               tagName: data.tag_name
             });
           });
         } 
 
-        if (!isOkchaindDownload || !isCliDownload) {
+        if (!isOkexchaindDownload || !isCliDownload) {
           doWhenWindowReadyRecevieEvent(() => {
             console.log('emit notDownload@Download')
             emitter.emit('notDownload@Download', {
-              isOkchaindDownload,
+              isOkexchaindDownload,
               isCliDownload,
               tagName: data.tag_name,
               isRedownload
@@ -145,7 +145,7 @@ module.exports = () => {
         }
     
         const doDownload = (name) => {
-          const url = name === 'okchaind' ? downloadUrl : cliDownloadUrl;
+          const url = name === 'okexchaind' ? downloadUrl : cliDownloadUrl;
 
           console.log(`${name} downloading...`);
           couldTar[name] = true;
@@ -154,7 +154,7 @@ module.exports = () => {
             try {
               const trigger = download(name, resolve);
               trigger(win, url, {
-                directory: lastVersionDirectory, // ~/OKChain/vx.xx.xx/
+                directory: lastVersionDirectory, // ~/OKExChain/vx.xx.xx/
                 onProgress: genDownloadProgressHandler(name, resolve)
               });
             } catch(err) {
@@ -166,20 +166,20 @@ module.exports = () => {
         }
         if (!isEmitterInit) {
 
-          emitter.on('downloadOkchaind@download', () => {
-            const path = `${lastVersionDirectory}/${okchaindObj.name}`;
+          emitter.on('downloadOkexchaind@download', () => {
+            const path = `${lastVersionDirectory}/${okexchaindObj.name}`;
             if (fs.existsSync(path)) {
               shell.rm('-f', path)
             }
-            doDownload('okchaind');
+            doDownload('okexchaind');
           });
   
-          emitter.on('downloadOkchaincli@download', () => {
+          emitter.on('downloadOkexchaincli@download', () => {
             const path = `${lastVersionDirectory}/${cliObj.name}`;
             if (fs.existsSync(path)) {
               shell.rm('-f', path)
             }
-            doDownload('okchaincli');
+            doDownload('okexchaincli');
           });
 
           emitter.on('redownload', () => {
