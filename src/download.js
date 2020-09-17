@@ -49,10 +49,14 @@ module.exports = () => {
     const okchaindObj = data.assets.filter(d => d.name.includes(assetType))[0];
     const downloadUrl = okchaindObj.browser_download_url;
     
+
     // okchaincli
     const cliType = `okchaincli.${process.platform}`;
     const cliObj = data.assets.filter(d => d.name.includes(cliType))[0];
     const cliDownloadUrl = cliObj.browser_download_url;
+
+    store.set('okchaindObj', okchaindObj);
+    store.set('cliObj', cliObj);
 
     let okchaindNeedUpdate = false;
     let cliNeedUpdate = false;
@@ -106,8 +110,6 @@ module.exports = () => {
       if (okchaindNeedUpdate || cliNeedUpdate || !isOkchaindDownload || !isOkchaindDownload) {
         await app.whenReady();
         win = BrowserWindow.getAllWindows()[0];
-        store.set('okchaindObj', okchaindObj);
-        store.set('cliObj', cliObj);
 
         if (okchaindNeedUpdate || cliNeedUpdate) {
           doWhenWindowReadyRecevieEvent(() => {
