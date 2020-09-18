@@ -52,7 +52,6 @@ function createWindow() {
 
   win.webContents.on('will-navigate', (event, a) => {
     console.log('will-navigate', a);
-    // event.preventDefault();
   });
 
   win.webContents.on('new-window', function(event, link){
@@ -66,9 +65,7 @@ function createWindow() {
 
 
 app.on('window-all-closed', () => {
-  // if (process.platform !== 'darwin') {
   app.quit();
-  // }
 });
 
 app.on('activate', () => {

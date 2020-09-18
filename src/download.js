@@ -2,7 +2,6 @@ const fs = require('fs');
 const { app, BrowserWindow } = require('electron');
 const { store, request, emitter, shell, download } = require('./utils');
 const RELEASE_URL = 'https://api.github.com/repos/okex/okexchain/releases/latest';
-// const latest = { body: require('../mock/latest.json') };
 
 let isInitWindowReadyReceiveEvent = false;
 module.exports = () => {
@@ -30,7 +29,6 @@ module.exports = () => {
     }
   };
 
-  // Promise.resolve(latest).then(response => {
   request(RELEASE_URL).then(response => {
     const { body: data } = response;
     const releaseTag = store.get('okexchaindReleaseTag');
@@ -44,13 +42,10 @@ module.exports = () => {
       return
     }
 
-    // okexchaind
     const assetType = `okexchaind.${process.platform}`;
     const okexchaindObj = data.assets.filter(d => d.name.includes(assetType))[0];
     const downloadUrl = okexchaindObj.browser_download_url;
     
-
-    // okexchaincli
     const cliType = `okexchaincli.${process.platform}`;
     const cliObj = data.assets.filter(d => d.name.includes(cliType))[0];
     const cliDownloadUrl = cliObj.browser_download_url;
@@ -154,7 +149,7 @@ module.exports = () => {
             try {
               const trigger = download(name, resolve);
               trigger(win, url, {
-                directory: lastVersionDirectory, // ~/OKExChain/vx.xx.xx/
+                directory: lastVersionDirectory,
                 onProgress: genDownloadProgressHandler(name, resolve)
               });
             } catch(err) {
