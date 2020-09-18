@@ -28,15 +28,14 @@ class LocalNodeDataStatus {
     this.statusDir = `${dataDir}/status.json`;
     let init = false;
     if(fs.existsSync(dataDir) && !fs.existsSync(this.statusDir)) init = true;
-    this.dataSet = getStatusJson(this.statusDir,{success:init,hasInitData:init,hasDownloadGenesis:init,hasDownloadSeeds:init,hasSetSeeds:init});
+    this.dataSet = getStatusJson(this.statusDir,{hasInitData:init,hasDownloadGenesis:init,hasDownloadSeeds:init,hasSetSeeds:init});
     this.bindEvent();
   }
 
   setSatus(status = {}) {
-    this.dataSet = {...this.dataSet,...status};
+    this.dataSet = Object.assign(this.dataSet, status);
     const dataSet = this.dataSet;
-    if(dataSet.hasInitData && dataSet.hasDownloadGenesis && dataSet.hasDownloadSeeds && dataSet.hasSetSeeds) dataSet.success = true;
-    else dataSet.success = false;
+    if(dataSet.hasInitData && dataSet.hasDownloadGenesis && dataSet.hasDownloadSeeds && dataSet.hasSetSeeds) 
     this.writeStatusJson();
   }
 

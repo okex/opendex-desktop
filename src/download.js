@@ -78,7 +78,7 @@ module.exports = () => {
       }
 
       store.set(`${name}ReleaseTag`, data.tag_name);
-      store.set('okexchainDirectory', directory);
+      store.set('okexchaindDirectory', directory);
     }
 
     const start = async (isRedownload = false) => {
