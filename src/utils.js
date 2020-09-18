@@ -12,7 +12,6 @@ if (nodePath) {
 }
 
 
-// store
 const schema = {
   releaseTag: {
     type: 'string'
@@ -20,11 +19,9 @@ const schema = {
 };
 const store = new Store({ schema });
 
-// emitter
 const emitter = new EventEmitter();
 emitter.setMaxListeners(50);
 
-// request
 const request = got.extend({
   responseType: 'json',
   hooks: {
