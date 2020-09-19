@@ -58,7 +58,7 @@ module.exports = () => {
 
     let okexchaindNeedUpdate = false;
     let cliNeedUpdate = false;
-    let isokexchaindDownload = true;
+    let isOKExChaindDownload = true;
     let isCliDownload = true;
     let isEmitterInit = false;
     let win;
@@ -90,22 +90,22 @@ module.exports = () => {
       }
 
       if (!fs.existsSync(lastVersionDirectory)) {
-        isOkexchaindDownload = false;
+        isOKExChaindDownload = false;
         isCliDownload = false;
       } else {
         if (!releaseTag || !fs.existsSync(`${lastVersionDirectory}/okexchaind`)) {
-          isOkexchaindDownload = false;
+          isOKExChaindDownload = false;
         }
         if (!cliReleaseTag || !fs.existsSync(`${lastVersionDirectory}/okexchaincli`)) {
-          isOkexchaindDownload = false;
+          isOKExChaindDownload = false;
         }
       }
 
       okexchaindNeedUpdate = okexchaindNeedUpdate || (releaseTag !== data.tag_name);
       cliNeedUpdate = cliNeedUpdate || (cliReleaseTag !== data.tag_name);
-      console.log(okexchaindNeedUpdate , cliNeedUpdate , !isOkexchaindDownload , !isOkexchaindDownload);
+      console.log(okexchaindNeedUpdate , cliNeedUpdate , !isOKExChaindDownload , !isOKExChaindDownload);
 
-      if (okexchaindNeedUpdate || cliNeedUpdate || !isOkexchaindDownload || !isOkexchaindDownload) {
+      if (okexchaindNeedUpdate || cliNeedUpdate || !isOKExChaindDownload || !isOKExChaindDownload) {
         await app.whenReady();
         win = BrowserWindow.getAllWindows()[0];
 
@@ -119,11 +119,11 @@ module.exports = () => {
           });
         } 
 
-        if (!isOkexchaindDownload || !isCliDownload) {
+        if (!isOKExChaindDownload || !isCliDownload) {
           doWhenWindowReadyRecevieEvent(() => {
             console.log('emit notDownload@Download')
             emitter.emit('notDownload@Download', {
-              isOkexchaindDownload,
+              isOKExChaindDownload,
               isCliDownload,
               tagName: data.tag_name,
               isRedownload
