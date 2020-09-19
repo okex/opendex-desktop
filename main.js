@@ -52,7 +52,6 @@ function createWindow() {
 
   win.webContents.on('will-navigate', (event, a) => {
     console.log('will-navigate', a);
-    // event.preventDefault();
   });
 
   win.webContents.on('new-window', function(event, link){
@@ -66,9 +65,7 @@ function createWindow() {
 
 
 app.on('window-all-closed', () => {
-  // if (process.platform !== 'darwin') {
   app.quit();
-  // }
 });
 
 app.on('activate', () => {
@@ -79,7 +76,7 @@ app.on('activate', () => {
 
 app.on('ready', () => {
   protocol.interceptFileProtocol('file', (request, callback) => {
-    const uri = request.url.substr(8); //file://{url}
+    const uri = request.url.substr(8);
     let { hash, pathname } = url.parse(uri);
 
     const isOklinePath = uri.includes('okline/');
@@ -88,6 +85,7 @@ app.on('ready', () => {
     const isAbsPath = pathname.includes(bundlePath.slice(1));
 
     let filePath = `/${uri}`;
+    console.log(filePath);
     if (isAbsPath) {
       pathname = pathname.replace(bundlePath.slice(1), '');
 

@@ -8,11 +8,12 @@
     "electron-builder": "^22.7.0"
   },
   "scripts": {
-    "start-locale": "export NODE_ENV='locale' && electron .",
+    "start-locale": "npm run build-okline && export NODE_ENV='locale' && electron .",
     "start-dev": "export NODE_ENV='develope' && electron .",
     "build-test": "rm -rf ./bundle && cp -r ../opendex-ui/bundle ./ && cp -r ../okline/okline ./bundle && rm -rf release && npm run build-mac",
     "build-mac": "electron-builder -c.productName='OpenDexMacDev' -c.extraMetadata.configEnv=develope",
-    "build-win": "electron-builder --win -c.productName='OpenDexWinDev' -c.extraMetadata.configEnv=develope"
+    "build-win": "electron-builder --win -c.productName='OpenDexWinDev' -c.extraMetadata.configEnv=develope",
+    "build-okline": "rm -rf ./bundle && mkdir bundle && cd ../okline && npm run release && cp -r ./okline ../opendex-desktop/bundle && cd ../opendex-desktop"
   },
   "author": "yuliang.zhang <zhangyuliangwork@gmail.com>",
   "license": "ISC",

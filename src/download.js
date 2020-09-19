@@ -2,7 +2,6 @@ const fs = require('fs');
 const { app, BrowserWindow } = require('electron');
 const { store, request, emitter, shell, download } = require('./utils');
 const RELEASE_URL = 'https://api.github.com/repos/okex/okexchain/releases/latest';
-// const latest = { body: require('../mock/latest.json') };
 
 let isInitWindowReadyReceiveEvent = false;
 module.exports = () => {
@@ -30,7 +29,6 @@ module.exports = () => {
     }
   };
 
-  // Promise.resolve(latest).then(response => {
   request(RELEASE_URL).then(response => {
     const { body: data } = response;
     const releaseTag = store.get('okexchaindReleaseTag');
@@ -44,13 +42,19 @@ module.exports = () => {
       return
     }
 
+<<<<<<< HEAD
     // okexchaind
+=======
+>>>>>>> 0674823091739a65747121c94b826ed85cc84502
     const assetType = `okexchaind.${process.platform}`;
     const okexchaindObj = data.assets.filter(d => d.name.includes(assetType))[0];
     const downloadUrl = okexchaindObj.browser_download_url;
     
+<<<<<<< HEAD
 
     // okexchaincli
+=======
+>>>>>>> 0674823091739a65747121c94b826ed85cc84502
     const cliType = `okexchaincli.${process.platform}`;
     const cliObj = data.assets.filter(d => d.name.includes(cliType))[0];
     const cliDownloadUrl = cliObj.browser_download_url;
@@ -60,7 +64,11 @@ module.exports = () => {
 
     let okexchaindNeedUpdate = false;
     let cliNeedUpdate = false;
+<<<<<<< HEAD
     let isokexchaindDownload = true;
+=======
+    let isOkexchaindDownload = true;
+>>>>>>> 0674823091739a65747121c94b826ed85cc84502
     let isCliDownload = true;
     let isEmitterInit = false;
     let win;
@@ -88,10 +96,11 @@ module.exports = () => {
 
     const start = async (isRedownload = false) => {
       if (isRedownload && fs.existsSync(lastVersionDirectory)) {
-        shell.rm('-f', `${lastVersionDirectory}/okchain*`)
+        shell.rm('-f', `${lastVersionDirectory}/okexchain*`)
       }
 
       if (!fs.existsSync(lastVersionDirectory)) {
+<<<<<<< HEAD
         isokexchaindDownload = false;
         isCliDownload = false;
       } else {
@@ -100,14 +109,30 @@ module.exports = () => {
         }
         if (!cliReleaseTag || !fs.existsSync(`${lastVersionDirectory}/okexchaincli`)) {
           isokexchaindDownload = false;
+=======
+        isOkexchaindDownload = false;
+        isCliDownload = false;
+      } else {
+        if (!releaseTag || !fs.existsSync(`${lastVersionDirectory}/okexchaind`)) {
+          isOkexchaindDownload = false;
+        }
+        if (!cliReleaseTag || !fs.existsSync(`${lastVersionDirectory}/okexchaincli`)) {
+          isOkexchaindDownload = false;
+>>>>>>> 0674823091739a65747121c94b826ed85cc84502
         }
       }
 
       okexchaindNeedUpdate = okexchaindNeedUpdate || (releaseTag !== data.tag_name);
       cliNeedUpdate = cliNeedUpdate || (cliReleaseTag !== data.tag_name);
+<<<<<<< HEAD
       console.log(okexchaindNeedUpdate , cliNeedUpdate , !isokexchaindDownload , !isokexchaindDownload);
 
       if (okexchaindNeedUpdate || cliNeedUpdate || !isokexchaindDownload || !isokexchaindDownload) {
+=======
+      console.log(okexchaindNeedUpdate , cliNeedUpdate , !isOkexchaindDownload , !isOkexchaindDownload);
+
+      if (okexchaindNeedUpdate || cliNeedUpdate || !isOkexchaindDownload || !isOkexchaindDownload) {
+>>>>>>> 0674823091739a65747121c94b826ed85cc84502
         await app.whenReady();
         win = BrowserWindow.getAllWindows()[0];
 
@@ -121,11 +146,19 @@ module.exports = () => {
           });
         } 
 
+<<<<<<< HEAD
         if (!isokexchaindDownload || !isCliDownload) {
           doWhenWindowReadyRecevieEvent(() => {
             console.log('emit notDownload@Download')
             emitter.emit('notDownload@Download', {
               isokexchaindDownload,
+=======
+        if (!isOkexchaindDownload || !isCliDownload) {
+          doWhenWindowReadyRecevieEvent(() => {
+            console.log('emit notDownload@Download')
+            emitter.emit('notDownload@Download', {
+              isOkexchaindDownload,
+>>>>>>> 0674823091739a65747121c94b826ed85cc84502
               isCliDownload,
               tagName: data.tag_name,
               isRedownload
@@ -154,7 +187,11 @@ module.exports = () => {
             try {
               const trigger = download(name, resolve);
               trigger(win, url, {
+<<<<<<< HEAD
                 directory: lastVersionDirectory, // ~/OKExChain/vx.xx.xx/
+=======
+                directory: lastVersionDirectory,
+>>>>>>> 0674823091739a65747121c94b826ed85cc84502
                 onProgress: genDownloadProgressHandler(name, resolve)
               });
             } catch(err) {
