@@ -12,7 +12,6 @@ const sourceEnv = nodeEnv === 'builder' ? require('./package.json').configEnv : 
 const configRes = envConfig[sourceEnv];
 const { entryTplName } =  envConfig[sourceEnv];
 const sourceHost = nodeEnv === 'builder' ? envConfig.staticBundlePath : configRes.staticPath || envConfig.staticLocalPath;
-
 const indexPageURL = `${sourceHost}/${entryTplName}`;
 
 if (!nodeEnv.includes('prod')) {
@@ -92,20 +91,20 @@ app.on('ready', () => {
     }
 
     if (isOklinePath || isAbsPath) {
-      pathname = pathname.startsWith('/') ? pathname.slice(1) : pathname
-      filePath = path.resolve(bundlePath, pathname)
+      pathname = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+      filePath = path.resolve(bundlePath, pathname);
     }
 
     if (isDexCommon) {
       const commonPath = pathname.replace('dex-test/spot/', '');
-      filePath = path.resolve(bundlePath, commonPath)
+      filePath = path.resolve(bundlePath, commonPath);
     }
 
     if (hash) {
       filePath = filePath.replace(hash, '');
     }
     
-    callback({ path: filePath })
+    callback({ path: filePath });
   });
 
   createWindow();

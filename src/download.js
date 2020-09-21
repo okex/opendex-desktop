@@ -7,7 +7,6 @@ let isInitWindowReadyReceiveEvent = false;
 module.exports = () => {
   let isWindowReadyReceiveEvent = false;
   const asyncEventHandlers = [];
-  console.log('okexchainDirectory', store.get('okexchaindDirectory'))
   if (!isInitWindowReadyReceiveEvent) {
     emitter.on('windowReadyReceiveEvent', () => {
       while(asyncEventHandlers.length) {
@@ -28,7 +27,7 @@ module.exports = () => {
      asyncEventHandlers.push(cb);
     }
   };
-
+  
   request(RELEASE_URL).then(response => {
     const { body: data } = response;
     const releaseTag = store.get('okexchaindReleaseTag');
@@ -39,8 +38,11 @@ module.exports = () => {
     if (!Array.isArray(data.assets) || !data.assets.length) {
       console.log('github release empty')
       emitter.emit('getReleaseInfoError@download', data);
-      return
+      return;
     }
+
+    // electron download item https://www.electronjs.org/docs/api/download-item
+    let electronDownloadItem = {};
 
     // okexchaind
     const assetType = `okexchaind.${process.platform}`;
@@ -62,6 +64,11 @@ module.exports = () => {
     let isCliDownload = true;
     let isEmitterInit = false;
     let win;
+    const downloadTimerObj = {
+      timer: null,
+      prePercent: 0
+    }; // check the progress out of time.
+
 
     const couldTar = {};
 
@@ -76,8 +83,13 @@ module.exports = () => {
         shell.cp(`./${appName}`, '../');
         couldTar[name] = false;
         emitter.emit(`downloadFinish@${name}`);
+        if (downloadTimerObj.timer !== null) {
+          clearTimeout(downloadTimerObj.timer);
+          downloadTimerObj.timer = null;
+        }
       } catch(err) {
-        console.log(err);
+        console.log('tar error', err);
+        emitter.emit(`downloadError`, err);
       }
 
       store.set(`${name}ReleaseTag`, data.tag_name);
@@ -132,9 +144,24 @@ module.exports = () => {
         }
 
         const genDownloadProgressHandler = (name, resolve) => {
+          let state = {};
           return async (res) => {
-              console.log(name, res)
+              state = res;
               emitter.emit(`downloadProgress@${name}`, res);
+              console.log(name, state);
+
+              if (downloadTimerObj.timer === null) {
+                downloadTimerObj.timer = setTimeout(() => {
+                  
+                  if (downloadTimerObj.prePercent === state.percent) {
+                    electronDownloadItem.cancel();
+                    emitter.emit('downloadError', 'timeout');
+                  }
+                  downloadTimerObj.prePercent = state.percent;
+                  downloadTimerObj.timer = null;
+                }, 5 * 60 * 1000);
+              }
+
               if (res.percent === 1 && couldTar[name]) {
                 onDownloadFinished(name);
                 typeof resolve === 'function' && resolve(true);
@@ -144,7 +171,6 @@ module.exports = () => {
     
         const doDownload = (name) => {
           const url = name === 'okexchaind' ? downloadUrl : cliDownloadUrl;
-
           console.log(`${name} downloading...`);
           couldTar[name] = true;
 
@@ -153,32 +179,35 @@ module.exports = () => {
               const trigger = download(name, resolve);
               trigger(win, url, {
                 directory: lastVersionDirectory, // ~/OKExChain/vx.xx.xx/
-                onProgress: genDownloadProgressHandler(name, resolve)
+                onProgress: genDownloadProgressHandler(name, resolve),
+                onStarted: (item) => {
+                  electronDownloadItem = item;
+                }
               });
             } catch(err) {
               console.log('doDownload error：', err);
-              emitter.emit(`downloadError`, err);
               reject(err);
             }
-          })
-        }
-        if (!isEmitterInit) {
+          });
+        };
 
-          emitter.on('downloadOkexchaind@download', () => {
-            const path = `${lastVersionDirectory}/${okexchaindObj.name}`;
-            if (fs.existsSync(path)) {
-              shell.rm('-f', path)
+        if (!isEmitterInit) {
+          const genHandler = (assetName) => {
+            const obj = assetName === 'okexchaind' ? okexchaindObj : cliObj;
+            return async () => {
+              const path = `${lastVersionDirectory}/${obj.name}`;
+              if (fs.existsSync(path)) {
+                shell.rm('-f', path)
+              }
+              try {
+                await doDownload(assetName);
+              } catch (err) {
+                emitter.emit(`downloadError`, err);
+              }
             }
-            doDownload('okexchaind');
-          });
-  
-          emitter.on('downloadOkexchaincli@download', () => {
-            const path = `${lastVersionDirectory}/${cliObj.name}`;
-            if (fs.existsSync(path)) {
-              shell.rm('-f', path)
-            }
-            doDownload('okexchaincli');
-          });
+          }
+          emitter.on('downloadOkexchaind@download', genHandler('okexchaind'));
+          emitter.on('downloadOkexchaincli@download', genHandler('okexchaincli'));
 
           emitter.on('redownload', () => {
             console.log('redownload...')
