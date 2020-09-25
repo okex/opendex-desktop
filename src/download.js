@@ -1,4 +1,5 @@
 const fs = require('fs');
+const execSync = require('child_process').execSync;
 const { app, BrowserWindow } = require('electron');
 const { store, request, emitter, shell, download } = require('./utils');
 const RELEASE_URL = 'https://api.github.com/repos/okex/okexchain/releases/latest';
@@ -72,7 +73,7 @@ module.exports = () => {
 
       shell.cd(lastVersionDirectory);
       try {
-        shell.exec(cmd);
+        execSync(cmd);
         shell.cp(`./${appName}`, '../');
         couldTar[name] = false;
         emitter.emit(`downloadFinish@${name}`);
