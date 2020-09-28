@@ -1,5 +1,7 @@
 const fs = require('fs');
 const { app } = require('electron');
+const config = require('./config');
+const emitter = require('./emitter');
 
 function getStatusJson(filename,initData) {
   if(!fs.existsSync(filename)) return initData;
@@ -40,7 +42,7 @@ class LocalNodeDataStatus {
   }
 
   bindEvent() {
-    process.on('uncaughtException', (err) => {
+    process.on('uncaughtException', () => {
       this.writeStatusJson();
     });
     app.on('window-all-closed', () => {
@@ -64,6 +66,14 @@ module.exports = {
       set(obj) {
         instance.setSatus(obj);
       }
+      
     };
+  },
+  checkOKExchain(triggerDown) {
+    const isExist = fs.existsSync(config.OKExchainDir);
+    if(triggerDown && !isExist) {
+      emitter.emit('redownload',false);
+    }
+    return isExist;
   }
 }

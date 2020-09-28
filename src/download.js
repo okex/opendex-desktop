@@ -1,7 +1,9 @@
 const fs = require('fs');
 const execSync = require('child_process').execSync;
 const { app, BrowserWindow } = require('electron');
-const { store, request, emitter, shell, download } = require('./utils');
+const config = require('./config');
+const emitter = require('./emitter');
+const { store, request, shell, download } = require('./utils');
 const RELEASE_URL = 'https://api.github.com/repos/okex/okexchain/releases/latest';
 
 let isInitWindowReadyReceiveEvent = false;
@@ -28,12 +30,14 @@ module.exports = () => {
      asyncEventHandlers.push(cb);
     }
   };
+
+  const directory = config.OKExchainDir;
+  store.set('okexchaindDirectory', directory);
   
   request(RELEASE_URL).then(response => {
     const { body: data } = response;
     const releaseTag = store.get('okexchaindReleaseTag');
     const cliReleaseTag = store.get('okexchaincliReleaseTag');
-    const directory = process.platform === 'win32' ? `%ProgramFiles%/OKExChain` : `${app.getPath('home')}/OKExChain`;
     const lastVersionDirectory = `${directory}/${data.tag_name}`;
 
     if (!Array.isArray(data.assets) || !data.assets.length) {
@@ -94,7 +98,6 @@ module.exports = () => {
       }
 
       store.set(`${name}ReleaseTag`, data.tag_name);
-      store.set('okexchaindDirectory', directory);
     }
 
     const start = async (isRedownload = false) => {
@@ -210,9 +213,9 @@ module.exports = () => {
           emitter.on('downloadOkexchaind@download', genHandler('okexchaind'));
           emitter.on('downloadOkexchaincli@download', genHandler('okexchaincli'));
 
-          emitter.on('redownload', () => {
+          emitter.on('redownload', (isRedownload=true) => {
             console.log('redownload...')
-            start(true);
+            start(isRedownload);
           });
 
           isEmitterInit = true;

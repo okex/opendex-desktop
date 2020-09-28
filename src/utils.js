@@ -1,6 +1,6 @@
 const shell = require('shelljs');
 const Store = require('electron-store');
-const { EventEmitter } = require('events');
+const emitter = require('./emitter');
 const got = require('got');
 const { download } = require('electron-dl');
 const localNodeDataStatus = require('./localNodeDataStatus');
@@ -19,7 +19,6 @@ const schema = {
 };
 const store = new Store({ schema });
 
-const emitter = new EventEmitter();
 emitter.setMaxListeners(50);
 
 const request = got.extend({
