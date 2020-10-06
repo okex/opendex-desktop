@@ -4,7 +4,7 @@
   "description": "opendex-desktop",
   "main": "main.js",
   "devDependencies": {
-    "electron": "^9.0.4",
+    "electron": "^9.3.1",
     "electron-builder": "^22.7.0"
   },
   "scripts": {
