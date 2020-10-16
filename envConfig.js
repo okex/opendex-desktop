@@ -1,6 +1,6 @@
 const path = require('path');
 
-const staticLocalPath = 'http://127.0.0.1:5200/dex-test/spot/trade';
+const staticLocalPath = 'http://127.0.0.1:5200/dex-test/swap';
 const staticBundlePath = `file://${path.resolve(__dirname, './bundle')}`;
 
 module.exports = {
