@@ -70,7 +70,7 @@ module.exports = {
     };
   },
   checkOKExchain(triggerDown) {
-    const isExist = fs.existsSync(config.OKExchainDir);
+    const isExist = fs.existsSync(config.OKExchainDir+'/okexchaind');
     if(triggerDown && !isExist) {
       emitter.emit('redownload',false);
     }
