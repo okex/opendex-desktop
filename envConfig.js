@@ -12,10 +12,10 @@ module.exports = {
   },
   develope: {
     staticPath: staticBundlePath,
-    entryTplName: 'index.html'
+    entryTplName: 'index.html#/dex-test/swap'
   },
   prod: {
     staticPath: staticBundlePath,
-    entryTplName: 'index.html'
+    entryTplName: 'index.html#/dex-test/swap'
   }
 };
