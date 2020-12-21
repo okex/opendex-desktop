@@ -80,7 +80,7 @@ app.on('ready', () => {
 
     const isOklinePath = uri.includes('okline/');
     const bundlePath = path.resolve(__dirname, './bundle');
-    const isDexCommon = uri.includes('dex-test/spot');
+    const isDexCommon = uri.includes('dex/spot');
     const isAbsPath = pathname.includes(bundlePath.slice(1));
 
     let filePath = `/${uri}`;
@@ -96,7 +96,7 @@ app.on('ready', () => {
     }
 
     if (isDexCommon) {
-      const commonPath = pathname.replace('dex-test/spot/', '');
+      const commonPath = pathname.replace('dex/spot/', '');
       filePath = path.resolve(bundlePath, commonPath);
     }
 

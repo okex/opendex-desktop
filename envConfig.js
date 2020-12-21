@@ -1,6 +1,6 @@
 const path = require('path');
 
-const staticLocalPath = 'http://127.0.0.1:5300/dex-test/swap';
+const staticLocalPath = 'http://127.0.0.1:5300/dex/swap';
 const staticBundlePath = `file://${path.resolve(__dirname, './bundle')}`;
 
 module.exports = {
@@ -12,10 +12,10 @@ module.exports = {
   },
   develope: {
     staticPath: staticBundlePath,
-    entryTplName: 'index.html#/dex-test/swap'
+    entryTplName: 'index.html#/dex/swap'
   },
   prod: {
     staticPath: staticBundlePath,
-    entryTplName: 'index.html#/dex-test/swap'
+    entryTplName: 'index.html#/dex/swap'
   }
 };
